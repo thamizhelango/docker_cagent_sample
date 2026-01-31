@@ -1,0 +1,72 @@
+# =============================================================================
+# Docker cagent - Local Model Agent (Docker Model Runner)
+# =============================================================================
+# An agent that runs entirely locally using Docker Model Runner (DMR).
+# No API keys required - models run on your machine!
+#
+# Usage:
+#   1. Enable Docker Model Runner in Docker Desktop settings
+#   2. Run: cagent run local-agent.yaml
+#
+# Requirements:
+#   - Docker Desktop 4.49.0+ with DMR enabled
+#   - Sufficient RAM for the model (8GB+ recommended)
+#   - macOS (Apple Silicon recommended) or Linux
+#
+# First run will download the model (~4GB for Qwen 7B)
+# =============================================================================
+
+models:
+  # Local Qwen model via Docker Model Runner
+  local-qwen:
+    provider: dmr
+    model: ai/qwen3:8B
+    max_tokens: 8192
+    temperature: 0.7
+    provider_opts:
+      # GPU layers (adjust based on your hardware)
+      runtime_flags: ["--ngl=33"]
+      # Optional: Enable speculative decoding for faster inference
+      # speculative_draft_model: ai/qwen3:1B
+      # speculative_num_tokens: 5
+
+  # Alternative: Smaller model for lower-end hardware
+  local-small:
+    provider: dmr
+    model: ai/gemma3n:2B
+    max_tokens: 4096
+    temperature: 0.7
+    provider_opts:
+      runtime_flags: ["--ngl=20"]
+
+agents:
+  root:
+    model: local-qwen
+    description: |
+      Local AI assistant running entirely on your machine.
+      No data leaves your computer - complete privacy!
+    instruction: |
+      You are a helpful AI assistant running locally via Docker Model Runner.
+      You provide the same quality assistance as cloud models, but with 
+      complete privacy - all processing happens on the user's machine.
+
+      ## Your Guidelines:
+      - Be helpful, accurate, and concise
+      - Acknowledge that you're a local model with potential limitations
+      - Focus on practical, actionable responses
+      - Use clear formatting with markdown
+
+      ## Capabilities:
+      - Answer questions on various topics
+      - Help with writing and editing
+      - Explain concepts clearly
+      - Assist with coding and technical questions
+      - Brainstorm ideas and solutions
+
+      ## Note on Performance:
+      As a local model, you might:
+      - Take a bit longer to respond than cloud models
+      - Have a smaller context window
+      - Be slightly less capable on very complex tasks
+      
+      But you offer complete privacy and work offline!

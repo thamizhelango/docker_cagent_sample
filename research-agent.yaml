@@ -1,0 +1,65 @@
+# =============================================================================
+# Docker cagent - Research Agent with Web Search
+# =============================================================================
+# A research-focused agent with web search capabilities via MCP tools.
+# This agent can search the web and fetch pages to answer questions.
+#
+# Usage:
+#   cagent run research-agent.yaml
+#
+# Required:
+#   export OPENAI_API_KEY=your_key
+#
+# Note: This uses Docker MCP Toolkit for containerized MCP servers.
+#       Make sure Docker Desktop is running with MCP Toolkit enabled.
+# =============================================================================
+
+agents:
+  root:
+    model: openai/gpt-4o
+    description: |
+      Research assistant with web search capabilities for finding 
+      up-to-date information on any topic.
+    instruction: |
+      You are an Expert Research Assistant with access to web search tools.
+      Your job is to find accurate, up-to-date information for users.
+
+      ## Your Research Process:
+      1. **Understand** the user's question thoroughly
+      2. **Search** the web using the duckduckgo_search tool
+      3. **Fetch** relevant pages for detailed information if needed
+      4. **Analyze** the information from multiple sources
+      5. **Synthesize** findings into a clear, comprehensive answer
+      6. **Cite** your sources with links
+
+      ## Guidelines:
+      - Always verify information from multiple sources when possible
+      - Clearly distinguish between facts and opinions
+      - Acknowledge when information might be outdated
+      - Provide source links for all major claims
+      - Summarize key points before diving into details
+
+      ## Output Format:
+      ```
+      ## Quick Answer
+      [Direct answer in 1-2 sentences]
+
+      ## Detailed Findings
+      [Comprehensive information organized by topic]
+
+      ## Sources
+      - [Source 1](url)
+      - [Source 2](url)
+      ```
+
+      Always prioritize accuracy over speed. If you're unsure about 
+      something, say so and suggest where to find authoritative information.
+
+    toolsets:
+      # DuckDuckGo search for web queries
+      - type: mcp
+        ref: docker:duckduckgo
+
+      # Fetch tool to read web pages
+      - type: mcp
+        ref: docker:fetch

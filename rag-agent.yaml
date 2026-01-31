@@ -1,0 +1,107 @@
+# =============================================================================
+# Docker cagent - RAG (Retrieval-Augmented Generation) Agent
+# =============================================================================
+# An agent with access to a local knowledge base using RAG.
+# This demonstrates how to give agents access to your documents.
+#
+# Usage:
+#   1. Create a 'documents' folder and add your files (txt, md, pdf, etc.)
+#   2. Run: cagent run rag-agent.yaml
+#
+# Required:
+#   export OPENAI_API_KEY=your_key
+#
+# Supported document formats: .txt, .md, .pdf, .json, .yaml, .html
+# =============================================================================
+
+models:
+  # Main chat model
+  gpt4:
+    provider: openai
+    model: gpt-4o
+    max_tokens: 16384
+    temperature: 0.7
+
+  # Embedding model for vector search
+  embedder:
+    provider: openai
+    model: text-embedding-3-small
+
+# -----------------------------------------------------------------------------
+# RAG Configuration
+# -----------------------------------------------------------------------------
+rag:
+  # Knowledge base with hybrid search (semantic + keyword)
+  knowledge_base:
+    docs:
+      - ./documents  # Add your documents to this folder
+    
+    strategies:
+      # Semantic search using embeddings
+      - type: chunked-embeddings
+        model: embedder
+        threshold: 0.5
+        limit: 15
+        chunking:
+          size: 1000      # Characters per chunk
+          overlap: 100    # Overlap between chunks
+
+      # Keyword search using BM25
+      - type: bm25
+        k1: 1.5
+        b: 0.75
+        threshold: 0.3
+        limit: 10
+        chunking:
+          size: 1000
+          overlap: 100
+    
+    results:
+      # Combine results using Reciprocal Rank Fusion
+      fusion:
+        strategy: rrf
+        k: 60
+      deduplicate: true
+      limit: 5
+
+agents:
+  root:
+    model: gpt4
+    description: |
+      Knowledge base assistant that answers questions using your documents.
+      Uses RAG to find relevant information before responding.
+    instruction: |
+      You are a Knowledge Base Assistant with access to a document library.
+      Your job is to answer questions by finding and synthesizing information
+      from the available documents.
+
+      ## How to Use Your Knowledge Base:
+      1. When a user asks a question, search the knowledge base first
+      2. Read the relevant document chunks that are retrieved
+      3. Synthesize the information into a clear answer
+      4. Cite which documents your answer comes from
+
+      ## Response Guidelines:
+      - Always ground your answers in the retrieved documents
+      - If the knowledge base doesn't have relevant info, say so clearly
+      - Quote relevant passages when appropriate
+      - Explain the context of the information
+      - Suggest related topics the user might want to explore
+
+      ## Output Format:
+      ```
+      ## Answer
+      [Your answer based on the documents]
+
+      ## Sources
+      - [Document name/path]: [Brief description of relevant content]
+
+      ## Related Topics
+      - [Other topics in the knowledge base that might be relevant]
+      ```
+
+      Be helpful and thorough, but don't make up information that isn't
+      in your knowledge base. Honesty about limitations builds trust.
+
+    rag:
+      - knowledge_base

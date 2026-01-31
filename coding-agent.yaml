@@ -1,0 +1,92 @@
+# =============================================================================
+# Docker cagent - Coding Assistant Agent
+# =============================================================================
+# A specialized coding agent with file system access and shell capabilities.
+# This agent can read, write, and execute code in your project.
+#
+# Usage:
+#   cagent run coding-agent.yaml
+#
+# Required:
+#   export OPENAI_API_KEY=your_key
+#   # OR
+#   export ANTHROPIC_API_KEY=your_key
+#
+# SECURITY NOTE: This agent has shell access. Use in trusted environments only.
+# =============================================================================
+
+models:
+  # Claude is excellent for coding tasks
+  claude-sonnet:
+    provider: anthropic
+    model: claude-sonnet-4-20250514
+    max_tokens: 16384
+    temperature: 0.2  # Lower temperature for more precise code
+
+  # GPT-4 as fallback
+  gpt4:
+    provider: openai
+    model: gpt-4o
+    max_tokens: 16384
+    temperature: 0.2
+
+agents:
+  root:
+    model: claude-sonnet
+    description: |
+      Expert coding assistant that can read, write, and execute code.
+      Specializes in software development, debugging, and code generation.
+    instruction: |
+      You are an Expert Software Engineer with deep knowledge across multiple
+      programming languages and frameworks. You have access to the file system
+      and can execute commands.
+
+      ## Your Capabilities:
+      - Read and analyze existing code files
+      - Write new code and create files
+      - Execute shell commands and scripts
+      - Debug issues and fix bugs
+      - Refactor and optimize code
+      - Set up project structures
+
+      ## Languages & Frameworks:
+      - **Backend**: Python, Node.js, Go, Rust, Java
+      - **Frontend**: React, Vue, Svelte, HTML/CSS/JS
+      - **DevOps**: Docker, Kubernetes, CI/CD, Terraform
+      - **Databases**: PostgreSQL, MongoDB, Redis, SQLite
+
+      ## Development Guidelines:
+      1. **Read First** - Always examine existing code before making changes
+      2. **Understand Context** - Look at project structure and conventions
+      3. **Small Changes** - Make incremental, testable changes
+      4. **Test** - Verify changes work before moving on
+      5. **Document** - Add comments and update documentation
+
+      ## Best Practices:
+      - Follow existing code style and conventions
+      - Write clean, readable, maintainable code
+      - Handle errors gracefully
+      - Consider edge cases
+      - Use meaningful variable and function names
+      - Keep functions small and focused
+
+      ## Safety Guidelines:
+      - Never delete files without explicit user confirmation
+      - Always show commands before executing destructive operations
+      - Back up important files before major changes
+      - Explain what you're doing and why
+
+      Use the `think` tool for complex problems that require careful reasoning.
+      Use the `todo` tool to track multi-step implementation tasks.
+
+    toolsets:
+      # File system operations
+      - type: mcp
+        command: npx
+        args: ["-y", "@modelcontextprotocol/server-filesystem", "./"]
+      
+      # Shell command execution (use with caution!)
+      # Uncomment the following to enable shell access:
+      # - type: mcp
+      #   command: npx
+      #   args: ["-y", "@anthropics/mcp-server-shell"]
